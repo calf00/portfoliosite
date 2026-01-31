@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Webサークル紹介サイト（Web制作 / DB / UI/UX 勉強会）" />
+  <title>Web Circle | Create, Design, Ship.</title>
+
+  <style>
+    /* =========================
+      0) カラーパレット（ここだけ変えれば全体が変わる）
+    ========================= */
+    :root{
+      --bg: #EFEFF1;      /* サブ */
+      --main: #ECD4D4;    /* メイン */
+      --sub: #C6D2BE;     /* サブ */
+      --accent: #2F6F7E;  /* アクセント（おすすめ） */
+      --accent2: #6B4F8A; /* 追加の差し色（少し紫） */
+
+      --ink: #1f2328;     /* 文字（黒すぎない） */
+      --muted: rgba(31,35,40,.7);
+      --line: rgba(31,35,40,.12);
+
+      --glass: rgba(239,239,241,.55);
+      --shadow: 0 18px 45px rgba(31,35,40,.12);
+      --shadow2: 0 10px 28px rgba(31,35,40,.10);
+      --r-xl: 28px;
+      --r-lg: 22px;
+      --r-md: 16px;
+
+      --container: 1120px;
+      --ease: cubic-bezier(.2,.8,.2,1);
+    }
+
+    /* =========================
+      1) ベース
+    ========================= */
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif;
+      color:var(--ink);
+      background: var(--bg);
+      overflow-x:hidden;
+    }
+    a{ color:inherit; text-decoration:none; }
+    .container{
+      width:min(var(--container), calc(100% - 40px));
+      margin-inline:auto;
+    }
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+
+    /* 背景のアート（SVGを使った“布”っぽいレイヤ） */
+    .bg-art{
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      pointer-events:none;
+    }
+    .bg-art svg{ width:100%; height:100%; display:block; }
+
+    /* うっすらノイズ風（本物のノイズ画像を使わずCSSで“粒感”っぽく） */
+    .grain{
+      position:fixed;
+      inset:-50%;
+      z-index:-1;
+      pointer-events:none;
+      opacity:.12;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(31,35,40,.22) 0 1px, transparent 2px),
+        radial-gradient(circle at 80% 60%, rgba(31,35,40,.18) 0 1px, transparent 2px),
+        radial-gradient(circle at 40% 80%, rgba(31,35,40,.16) 0 1px, transparent 2px);
+      background-size: 220px 220px, 260px 260px, 300px 300px;
+      mix-blend-mode:multiply;
+      transform: rotate(8deg);
+      filter: blur(.1px);
+    }
+
+    /* =========================
+      2) ナビ
+    ========================= */
+    header{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(to bottom, rgba(239,239,241,.75), rgba(239,239,241,.45));
+      border-bottom:1px solid rgba(31,35,40,.08);
+    }
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 0;
+      gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:700;
+      letter-spacing:.3px;
+    }
+    .brand-badge{
+      width:38px; height:38px;
+      border-radius:14px;
+      background: radial-gradient(circle at 30% 30%, var(--main), var(--sub));
+      box-shadow: var(--shadow2);
+      position:relative;
+      overflow:hidden;
+    }
+    .brand-badge::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: conic-gradient(from 180deg, rgba(47,111,126,.0), rgba(47,111,126,.35), rgba(107,79,138,.20), rgba(47,111,126,.0));
+      animation: spin 6.5s linear infinite;
+    }
+    @keyframes spin { to{ transform:rotate(360deg);} }
+
+    .nav-links{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .nav-links a{
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:14px;
+      color: rgba(31,35,40,.82);
+      transition: background .2s var(--ease), transform .2s var(--ease);
+    }
+    .nav-links a:hover{
+      background: rgba(236,212,212,.55);
+      transform: translateY(-1px);
+    }
+
+    .cta{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background: linear-gradient(135deg, rgba(47,111,126,.95), rgba(107,79,138,.85));
+      color:white;
+      font-weight:700;
+      box-shadow: var(--shadow2);
+      border:1px solid rgba(255,255,255,.25);
+      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      white-space:nowrap;
+    }
+    .cta:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(31,35,40,.16);
+    }
+
+    /* =========================
+      3) ヒーロー（パララックス + バーン系）
+    ========================= */
+    .hero{
+      position:relative;
+      padding: clamp(54px, 6vw, 92px) 0 42px;
+      overflow:hidden;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:28px;
+      align-items:center;
+    }
+    @media (max-width: 920px){
+      .hero-grid{ grid-template-columns: 1fr; }
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(239,239,241,.65);
+      box-shadow: 0 10px 28px rgba(31,35,40,.06);
+      font-size:13px;
+      color: rgba(31,35,40,.72);
+    }
+    .kicker .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(47,111,126,.12);
+    }
+
+    h1{
+      margin:14px 0 10px;
+      font-size: clamp(34px, 4.1vw, 56px);
+      line-height:1.05;
+      letter-spacing:-.5px;
+    }
+    .lead{
+      margin: 12px 0 22px;
+      font-size: 16px;
+      line-height:1.9;
+      color: rgba(31,35,40,.78);
+      max-width: 58ch;
+    }
+
+    .hero-actions{
+      display:flex; gap:12px; flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:999px;
+      border:1px solid rgba(31,35,40,.14);
+      background: rgba(239,239,241,.7);
+      box-shadow: 0 10px 24px rgba(31,35,40,.08);
+      transition: transform .2s var(--ease), background .2s var(--ease);
+      font-weight:700;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      background: rgba(236,212,212,.55);
+    }
+    .btn.primary{
+      border-color: rgba(47,111,126,.25);
+      background: linear-gradient(135deg, rgba(236,212,212,.75), rgba(198,210,190,.65));
+    }
+
+    /* 右側のアートカード */
+    .hero-card{
+      position:relative;
+      border-radius: var(--r-xl);
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(239,239,241,.75), rgba(239,239,241,.42));
+      border:1px solid rgba(31,35,40,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height: 360px;
+    }
+
+    /* バーンって光が走る（スイープ） */
+    .hero-card::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: linear-gradient(115deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.35) 35%,
+        rgba(255,255,255,0) 70%);
+      transform: translateX(-40%) rotate(12deg);
+      animation: sweep 5.6s var(--ease) infinite;
+      opacity:.7;
+      pointer-events:none;
+    }
+    @keyframes sweep{
+      0%   { transform: translateX(-55%) rotate(12deg); opacity:.35; }
+      40%  { opacity:.85; }
+      55%  { transform: translateX(55%) rotate(12deg); opacity:.5; }
+      100% { transform: translateX(55%) rotate(12deg); opacity:.0; }
+    }
+
+    .mini-title{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:14px;
+      gap:12px;
+    }
+    .mini-title strong{ letter-spacing:.2px; }
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(236,212,212,.55);
+      border:1px solid rgba(31,35,40,.08);
+    }
+
+    /* アートレイヤ（パララックス対象） */
+    .blob{
+      position:absolute;
+      border-radius: 999px;
+      filter: blur(0px);
+      opacity:.9;
+      transform: translate3d(0,0,0);
+    }
+    .blob.b1{
+      width: 240px; height: 240px;
+      left: -60px; top: -40px;
+      background: radial-gradient(circle at 30% 30%, rgba(236,212,212,.95), rgba(236,212,212,.0) 70%),
+                  radial-gradient(circle at 70% 65%, rgba(47,111,126,.35), rgba(47,111,126,0) 65%);
+      filter: blur(1px);
+    }
+    .blob.b2{
+      width: 280px; height: 280px;
+      right: -90px; bottom: -90px;
+      background: radial-gradient(circle at 35% 30%, rgba(198,210,190,.95), rgba(198,210,190,.0) 70%),
+                  radial-gradient(circle at 65% 70%, rgba(107,79,138,.22), rgba(107,79,138,0) 62%);
+    }
+
+    .hero-stats{
+      position:absolute;
+      left:18px; right:18px; bottom:18px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    .stat{
+      border-radius: 18px;
+      padding: 12px 12px 10px;
+      background: rgba(239,239,241,.62);
+      border:1px solid rgba(31,35,40,.10);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 22px rgba(31,35,40,.07);
+    }
+    .stat .n{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .stat .t{
+      font-size:12px;
+      color: rgba(31,35,40,.68);
+      margin-top:4px;
+      line-height:1.3;
+    }
+
+    /* =========================
+      4) セクション共通
+    ========================= */
+    section{
+      padding: 56px 0;
+      position:relative;
+    }
+    .section-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom: 18px;
+    }
+    .section-head h2{
+      margin:0;
+      font-size: clamp(22px, 2.6vw, 32px);
+      letter-spacing:-.2px;
+    }
+    .section-head p{
+      margin:0;
+      color: var(--muted);
+      line-height:1.75;
+      max-width: 60ch;
+    }
+
+    .grid3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      .grid3{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border-radius: var(--r-lg);
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(239,239,241,.74), rgba(239,239,241,.46));
+      border: 1px solid rgba(31,35,40,.10);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+      position:relative;
+    }
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: inherit;
+      pointer-events:none;
+      background: radial-gradient(circle at 20% 10%, rgba(236,212,212,.35), transparent 45%),
+                  radial-gradient(circle at 90% 70%, rgba(198,210,190,.30), transparent 46%),
+                  radial-gradient(circle at 55% 45%, rgba(47,111,126,.18), transparent 44%);
+      mix-blend-mode: multiply;
+      opacity:.9;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    .icon{
+      width:46px; height:46px;
+      border-radius:16px;
+      display:grid; place-items:center;
+      background: rgba(236,212,212,.55);
+      border:1px solid rgba(31,35,40,.10);
+      margin-bottom: 12px;
+      box-shadow: 0 10px 22px rgba(31,35,40,.08);
+    }
+    .card h3{ margin: 4px 0 6px; font-size: 18px; }
+    .card p{ margin:0; color: rgba(31,35,40,.72); line-height:1.8; }
+
+    .tagrow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top: 12px;
+    }
+    .tag{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(31,35,40,.10);
+      background: rgba(239,239,241,.62);
+      color: rgba(31,35,40,.72);
+    }
+
+    /* =========================
+      5) カルーセル（横スライド）
+    ========================= */
+    .carousel{
+      position:relative;
+      border-radius: var(--r-xl);
+      border:1px solid rgba(31,35,40,.10);
+      background: linear-gradient(180deg, rgba(239,239,241,.75), rgba(239,239,241,.42));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .track{
+      display:flex;
+      gap:14px;
+      padding: 16px;
+      overflow:auto;
+      scroll-snap-type:x mandatory;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .track::-webkit-scrollbar{ height:10px; }
+    .track::-webkit-scrollbar-thumb{
+      background: rgba(31,35,40,.12);
+      border-radius:999px;
+    }
+    .slide{
+      flex: 0 0 min(520px, 86%);
+      scroll-snap-align: start;
+      border-radius: 22px;
+      padding: 18px;
+      background: rgba(239,239,241,.62);
+      border:1px solid rgba(31,35,40,.10);
+      position:relative;
+      overflow:hidden;
+      min-height: 220px;
+    }
+    .slide .top{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom: 10px;
+    }
+    .slide .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(198,210,190,.55);
+      border:1px solid rgba(31,35,40,.10);
+    }
+    .slide h3{ margin: 0 0 8px; font-size: 20px; letter-spacing:-.2px; }
+    .slide p{ margin:0; color: rgba(31,35,40,.74); line-height:1.85; }
+
+    /* スライド背景のSVGっぽい模様（疑似） */
+    .slide::after{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(236,212,212,.55), transparent 55%),
+        radial-gradient(circle at 70% 60%, rgba(47,111,126,.22), transparent 55%),
+        radial-gradient(circle at 55% 15%, rgba(107,79,138,.18), transparent 45%);
+      transform: rotate(-8deg);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .slide > *{ position:relative; z-index:1; }
+
+    .car-controls{
+      position:absolute;
+      top: 14px;
+      right: 14px;
+      display:flex;
+      gap:10px;
+      z-index:2;
+    }
+    .iconbtn{
+      width:40px; height:40px;
+      border-radius:999px;
+      border:1px solid rgba(31,35,40,.12);
+      background: rgba(239,239,241,.7);
+      box-shadow: 0 10px 22px rgba(31,35,40,.08);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: transform .2s var(--ease), background .2s var(--ease);
+    }
+    .iconbtn:hover{
+      transform: translateY(-2px);
+      background: rgba(236,212,212,.55);
+    }
+
+    /* =========================
+      6) タイムライン
+    ========================= */
+    .timeline{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){ .timeline{ grid-template-columns: 1fr; } }
+    .step{
+      padding: 16px 16px 14px;
+      border-radius: 22px;
+      background: rgba(239,239,241,.62);
+      border:1px solid rgba(31,35,40,.10);
+      position:relative;
+      overflow:hidden;
+    }
+    .step .row{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom: 8px;
+    }
+    .step .when{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(236,212,212,.55);
+      border:1px solid rgba(31,35,40,.10);
+    }
+    .step h3{ margin:0 0 6px; font-size: 16px; }
+    .step p{ margin:0; color: rgba(31,35,40,.74); line-height:1.8; }
+
+    /* =========================
+      7) CTA ブロック
+    ========================= */
+    .cta-block{
+      border-radius: var(--r-xl);
+      padding: 22px;
+      border:1px solid rgba(31,35,40,.10);
+      background: linear-gradient(135deg, rgba(236,212,212,.72), rgba(198,210,190,.62));
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .cta-block::before{
+      content:"";
+      position:absolute;
+      inset:-50%;
+      background: conic-gradient(from 90deg,
+        rgba(47,111,126,.0),
+        rgba(47,111,126,.32),
+        rgba(107,79,138,.22),
+        rgba(47,111,126,.0));
+      animation: spin 14s linear infinite;
+      opacity:.55;
+      pointer-events:none;
+    }
+    .cta-inner{
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    .cta-inner h2{ margin:0; }
+    .cta-inner p{ margin:6px 0 0; color: rgba(31,35,40,.74); line-height:1.8; max-width: 60ch; }
+
+    footer{
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(31,35,40,.10);
+      color: rgba(31,35,40,.72);
+      background: rgba(239,239,241,.55);
+      backdrop-filter: blur(12px);
+    }
+
+    /* =========================
+      8) スクロール出現アニメ（“ふわっ”）
+         → JSで .reveal に .in を付ける
+    ========================= */
+    .reveal{
+      opacity:0;
+      transform: translateY(18px) scale(.985);
+      transition: opacity .7s var(--ease), transform .7s var(--ease);
+    }
+    .reveal.in{
+      opacity:1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* パララックス対象（JSで translateY を足す） */
+    .parallax{ will-change: transform; }
+
+    /* 動きが苦手な人（OS設定）に配慮 */
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .reveal{ transition:none; }
+      .hero-card::before{ animation:none; }
+      .brand-badge::after{ animation:none; }
+      .cta-block::before{ animation:none; }
+      .parallax{ transform:none !important; }
+    }
+    /* =========================
+  Split / Dicer Background FX
+  - 上面/下面の2レイヤで背景を「割って開く」
+  - 中央に刃（スピンドル）っぽい線と光
+========================= */
+.splitfx{
+  position:fixed;
+  inset:0;
+  z-index:-1;            /* bg-art の上、コンテンツの下に置く想定 */
+  pointer-events:none;
+  overflow:hidden;
+}
+
+/* 上半分 / 下半分の“幕” */
+.splitfx-half{
+  position:absolute;
+  left:0; right:0;
+  height:50%;
+  overflow:hidden;
+  will-change: transform;
+  transform: translate3d(0,0,0);
+}
+
+.splitfx-half.top{ top:0; }
+.splitfx-half.bottom{ bottom:0; }
+
+/* 幕の表面（この中に“同じ背景”を描く） */
+.splitfx-surface{
+  position:absolute;
+  inset:-8% -8%;  /* 少しはみ出して動かしても隙間が出ないように */
+  background:
+    /* 既存の配色を使った“水彩っぽい”滲み */
+    radial-gradient(circle at 20% 25%, rgba(236,212,212,.70), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(198,210,190,.65), transparent 60%),
+    radial-gradient(circle at 55% 40%, rgba(47,111,126,.18), transparent 55%),
+    linear-gradient(135deg, rgba(236,212,212,.22), rgba(239,239,241,.15), rgba(198,210,190,.20));
+  filter: saturate(1.05);
+  opacity:.9;
+}
+
+/* 上面/下面で “同じ背景が繋がって見える” ように位置をずらす */
+.splitfx-half.top .splitfx-surface{
+  transform: translate3d(0,0,0);
+}
+.splitfx-half.bottom .splitfx-surface{
+  transform: translate3d(0,-50%,0); /* 下半分は背景を上に半分ずらして連続に見せる */
+}
+
+/* 割れ目の“刃（spindle）” */
+.splitfx-blade{
+  position:absolute;
+  left:0; right:0;
+  top:50%;
+  height:0;
+  transform: translateY(-50%);
+  will-change: transform, opacity;
+}
+
+.blade-core{
+  position:absolute;
+  left:50%;
+  width: min(860px, 92vw);
+  height: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0),
+    rgba(255,255,255,.85),
+    rgba(255,255,255,0)
+  );
+  opacity:.9;
+  mix-blend-mode: overlay;
+}
+
+.blade-glow{
+  position:absolute;
+  left:50%;
+  width: min(980px, 96vw);
+  height: 34px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 50% 50%,
+    rgba(47,111,126,.22),
+    rgba(236,212,212,.22),
+    rgba(107,79,138,.10),
+    rgba(0,0,0,0) 62%
+  );
+  filter: blur(6px);
+  opacity:.75;
+  mix-blend-mode: multiply;
+}
+
+/* 中央に薄い“切断線”を常駐（上と下の境目が分かる） */
+.splitfx::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  top:50%;
+  height:1px;
+  transform: translateY(-50%);
+  background: rgba(31,35,40,.10);
+  opacity:.35;
+}
+
+/* 動きが苦手な人向け */
+@media (prefers-reduced-motion: reduce){
+  .splitfx-half{ transform:none !important; }
+  .splitfx-blade{ opacity:.25 !important; }
+}
+
+
+  </style>
+</head>
+
+<body>
+  <!-- 背景アート（SVG模様：布っぽい曲線 + パターン） -->
+  <div class="bg-art" aria-hidden="true">
+    <!-- Split / Dicer Background (scroll-driven) -->
+<div class="splitfx" aria-hidden="true">
+  <div class="splitfx-half top">
+    <div class="splitfx-surface"></div>
+  </div>
+  <div class="splitfx-half bottom">
+    <div class="splitfx-surface"></div>
+  </div>
+
+  <!-- 中央の“刃（spindle）” -->
+  <div class="splitfx-blade">
+    <div class="blade-core"></div>
+    <div class="blade-glow"></div>
+  </div>
+</div>
+
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wash" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#ECD4D4" stop-opacity=".45"/>
+          <stop offset=".55" stop-color="#EFEFF1" stop-opacity=".25"/>
+          <stop offset="1" stop-color="#C6D2BE" stop-opacity=".40"/>
+        </linearGradient>
+
+        <pattern id="lines" width="44" height="44" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+          <path d="M 0 22 L 44 22" stroke="rgba(31,35,40,.08)" stroke-width="1"/>
+          <path d="M 0 0 L 44 0" stroke="rgba(31,35,40,.05)" stroke-width="1"/>
+        </pattern>
+
+        <filter id="softBlur">
+          <feGaussianBlur stdDeviation="18"/>
+        </filter>
+      </defs>
+
+      <rect x="0" y="0" width="1600" height="900" fill="url(#wash)"/>
+      <rect x="0" y="0" width="1600" height="900" fill="url(#lines)" opacity=".45"/>
+
+      <!-- 大きな“にじみ” -->
+      <g filter="url(#softBlur)" opacity=".75">
+        <path d="M-200,220 C180,40 380,120 600,220 C880,350 1020,40 1320,180 C1540,280 1720,360 1800,260 L1800,0 L-200,0 Z"
+              fill="rgba(236,212,212,.55)"/>
+        <path d="M-180,980 C160,720 520,860 760,740 C980,630 1080,860 1320,760 C1520,680 1700,700 1840,760 L1840,980 Z"
+              fill="rgba(198,210,190,.55)"/>
+        <circle cx="1320" cy="260" r="160" fill="rgba(47,111,126,.20)"/>
+        <circle cx="420" cy="620" r="190" fill="rgba(107,79,138,.16)"/>
+      </g>
+    </svg>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ヘッダー -->
+  <header>
+    <div class="container">
+      <div class="nav">
+        <a class="brand" href="#top" aria-label="トップへ">
+          <span class="brand-badge" aria-hidden="true"></span>
+          <span>Web Circle</span>
+        </a>
+
+        <nav class="nav-links" aria-label="サイト内リンク">
+          <a href="#about">活動概要</a>
+          <a href="#pillars">学ぶこと</a>
+          <a href="#works">制作・発表</a>
+          <a href="#schedule">開催</a>
+          <a class="cta" href="#join">参加する</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ヒーロー -->
+  <main id="top" class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <div class="kicker reveal">
+            <span class="dot" aria-hidden="true"></span>
+            <span>Web制作 / データベース / UI/UX を “作りながら” 学ぶ</span>
+          </div>
+
+          <h1 class="reveal" style="transition-delay:.05s">
+            Create, Design, Ship.<br>
+            作品が増えるサークル。
+          </h1>
+
+          <p class="lead reveal" style="transition-delay:.1s">
+            私たちは、Webアプリ制作・データベース設計・UI/UX改善を、勉強会と制作スプリントで回すサークルです。
+            初心者は基礎から、経験者は設計やレビューで伸ばせる“分業しない”制作体験を目指します。
+          </p>
+
+          <div class="hero-actions reveal" style="transition-delay:.15s">
+            <a class="btn primary" href="#join">体験参加の流れを見る</a>
+            <a class="btn" href="#works">制作例・発表を見る</a>
+          </div>
+        </div>
+
+        <aside class="hero-card reveal" style="transition-delay:.08s" aria-label="サークルの雰囲気カード">
+          <div class="blob b1 parallax" data-parallax="0.22" aria-hidden="true"></div>
+          <div class="blob b2 parallax" data-parallax="0.32" aria-hidden="true"></div>
+
+          <div class="mini-title">
+            <strong>今月のテーマ</strong>
+            <span class="pill">UIの“気持ちよさ”を設計する</span>
+          </div>
+
+          <div class="card" style="border-radius:22px; background: rgba(239,239,241,.58);">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div class="icon" aria-hidden="true">
+                <!-- ミニSVGアイコン -->
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7h16M7 4v16M4 17h16" stroke="rgba(31,35,40,.78)" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M9.5 9.5h10v8h-10z" fill="rgba(47,111,126,.20)" stroke="rgba(31,35,40,.2)"/>
+                </svg>
+              </div>
+              <div>
+                <h3 style="margin:0 0 6px; font-size:18px;">デザイン→実装→計測 まで一気通貫</h3>
+                <p style="margin:0; color: rgba(31,35,40,.74); line-height:1.8;">
+                  Figmaで仮説を立て、実装し、触って違和感を潰す（小さく作って早く直す）。
+                  “良いUI”を言語化する練習もします。
+                </p>
+                <div class="tagrow">
+                  <span class="tag">Figma</span>
+                  <span class="tag">Design Review</span>
+                  <span class="tag">A/Bの考え方</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-stats" aria-label="サークルの特徴">
+            <div class="stat parallax" data-parallax="0.18">
+              <div class="n">週1</div>
+              <div class="t">勉強会 + ミニ制作</div>
+            </div>
+            <div class="stat parallax" data-parallax="0.24">
+              <div class="n">レビュー</div>
+              <div class="t">UI / DB / 実装を相互に</div>
+            </div>
+            <div class="stat parallax" data-parallax="0.30">
+              <div class="n">発表</div>
+              <div class="t">月1で成果共有</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- 活動概要 -->
+  <section id="about">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="reveal">活動概要</h2>
+        <p class="reveal" style="transition-delay:.05s">
+          “作れるようになる”には、教材だけでなく、実戦の設計とレビューが必要。
+          サークルでは、制作を軸に学習テーマを循環させます。
+        </p>
+      </div>
+
+      <div class="grid3">
+        <div class="card reveal">
+          <div class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M5 7.5h14M8 4.5v15M5 17h14" stroke="rgba(31,35,40,.78)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M10 9h9v7h-9z" fill="rgba(236,212,212,.55)" stroke="rgba(31,35,40,.2)"/>
+            </svg>
+          </div>
+          <h3>Web制作（フロント / バック）</h3>
+          <p>画面を作るだけで終わらず、ルーティング・API・認証など“動く”ところまで扱います。</p>
+          <div class="tagrow">
+            <span class="tag">HTML/CSS/JS</span>
+            <span class="tag">API設計</span>
+            <span class="tag">認証</span>
+          </div>
+        </div>
+
+        <div class="card reveal" style="transition-delay:.05s">
+          <div class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M7 6c0-1.1 2.2-2 5-2s5 .9 5 2-2.2 2-5 2-5-.9-5-2Z" fill="rgba(198,210,190,.55)" stroke="rgba(31,35,40,.2)"/>
+              <path d="M7 6v6c0 1.1 2.2 2 5 2s5-.9 5-2V6" stroke="rgba(31,35,40,.78)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M7 12v6c0 1.1 2.2 2 5 2s5-.9 5-2v-6" stroke="rgba(31,35,40,.78)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>データベース（設計・正規化）</h3>
+          <p>“とりあえずテーブル”を卒業。データの持ち方を決めて、変更に強い設計を身につけます。</p>
+          <div class="tagrow">
+            <span class="tag">ER図</span>
+            <span class="tag">正規化</span>
+            <span class="tag">SQL</span>
+          </div>
+        </div>
+
+        <div class="card reveal" style="transition-delay:.1s">
+          <div class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M4 12c3-7 13-7 16 0-3 7-13 7-16 0Z" fill="rgba(47,111,126,.18)" stroke="rgba(31,35,40,.2)"/>
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="rgba(31,35,40,.78)" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <h3>UI/UX（違和感を潰す）</h3>
+          <p>“なんか使いづらい”を言語化。導線、余白、フィードバック、動きまで設計します。</p>
+          <div class="tagrow">
+            <span class="tag">導線</span>
+            <span class="tag">ユーザーテスト</span>
+            <span class="tag">アニメーション</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 学ぶ柱 -->
+  <section id="pillars">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="reveal">学ぶ柱（4 Pillars）</h2>
+        <p class="reveal" style="transition-delay:.05s">
+          いきなり全部は大変なので、柱を4つに分けて回します（毎回テーマが変わる感じ）。
+        </p>
+      </div>
+
+      <div class="grid3">
+        <div class="card reveal">
+          <div class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M6 6h12v12H6z" stroke="rgba(31,35,40,.78)" stroke-width="1.6"/>
+              <path d="M8 10h8M8 14h6" stroke="rgba(31,35,40,.55)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>実装（Implementation）</h3>
+          <p>コンポーネント設計（部品化）や状態管理（画面の“今”）を学びます。</p>
+        </div>
+
+        <div class="card reveal" style="transition-delay:.05s">
+          <div class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M7 17l4-10 3 7 3-5" stroke="rgba(31,35,40,.78)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 19h14" stroke="rgba(31,35,40,.55)" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>データ（Data & DB）</h3>
+          <p>ER図→テーブル→クエリの順で、“扱いやすいデータ”を作れるようにします。</p>
+        </div>
+
+        <div class="card reveal" style="transition-delay:.1s">
+          <div class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M7 7h10v10H7z" fill="rgba(236,212,212,.55)" stroke="rgba(31,35,40,.2)"/>
+              <path d="M9 9h6v6H9z" stroke="rgba(31,35,40,.78)" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <h3>デザイン（UI/UX）</h3>
+          <p>余白・コントラスト・情報設計（見せる順番）で“迷わない画面”を作ります。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 制作・発表（カルーセル） -->
+  <section id="works">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="reveal">制作・発表（Showcase）</h2>
+        <p class="reveal" style="transition-delay:.05s">
+          スライドで“成果”を回覧（カルーセル）。クリックやスワイプで動きます。
+        </p>
+      </div>
+
+      <div class="carousel reveal" style="transition-delay:.08s" aria-label="制作紹介カルーセル">
+        <div class="car-controls" aria-hidden="false">
+          <button class="iconbtn" type="button" data-prev aria-label="前へ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M15 6l-6 6 6 6" stroke="rgba(31,35,40,.78)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="iconbtn" type="button" data-next aria-label="次へ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6l6 6-6 6" stroke="rgba(31,35,40,.78)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="track" data-track>
+          <article class="slide">
+            <div class="top">
+              <span class="badge">Web App</span>
+              <span class="tag">Sprint #01</span>
+            </div>
+            <h3>学内イベントまとめサイト</h3>
+            <p>
+              予定の登録→一覧→検索まで実装。UIは“迷いポイント”を潰すレビューを複数回入れて改善。
+              （ポイント：入力フォームの負担を下げる）
+            </p>
+          </article>
+
+          <article class="slide">
+            <div class="top">
+              <span class="badge">DB Design</span>
+              <span class="tag">Sprint #02</span>
+            </div>
+            <h3>レビュー管理（ER図から開始）</h3>
+            <p>
+              ユーザー・投稿・タグ・評価を正規化して設計。後から機能を足しても破綻しにくい構造に。
+              （ポイント：関係の切り分け）
+            </p>
+          </article>
+
+          <article class="slide">
+            <div class="top">
+              <span class="badge">UI/UX</span>
+              <span class="tag">Sprint #03</span>
+            </div>
+            <h3>“気持ちよさ”を作る動き</h3>
+            <p>
+              ローディング、ボタン反応、スクロール出現など、視線誘導のアニメを最小限で設計。
+              （ポイント：やりすぎない）
+            </p>
+          </article>
+
+          <article class="slide">
+            <div class="top">
+              <span class="badge">Workshop</span>
+              <span class="tag">Monthly</span>
+            </div>
+            <h3>LT（ライトニングトーク）</h3>
+            <p>
+              “今週学んだ1つ”を5分で共有。人に説明すると理解が深くなる（最短で伸びるやつ）。
+            </p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 開催 -->
+  <section id="schedule">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="reveal">開催・進め方</h2>
+        <p class="reveal" style="transition-delay:.05s">
+          勉強会（インプット）→制作（アウトプット）→レビュー（改善）を、短い周期で回します。
+        </p>
+      </div>
+
+      <div class="timeline">
+        <div class="step reveal">
+          <div class="row">
+            <strong>勉強会</strong>
+            <span class="when">Week 1</span>
+          </div>
+          <h3>テーマを絞って理解する</h3>
+          <p>例：フォーム設計、DBの正規化、UIの余白、APIの設計など。ミニ課題で手を動かします。</p>
+        </div>
+
+        <div class="step reveal" style="transition-delay:.05s">
+          <div class="row">
+            <strong>制作スプリント</strong>
+            <span class="when">Week 2</span>
+          </div>
+          <h3>小さく作って早く見せる</h3>
+          <p>“完成”より“動く試作品”を優先（ここが伸びるポイント）。役割を固定せず全員が触ります。</p>
+        </div>
+
+        <div class="step reveal" style="transition-delay:.08s">
+          <div class="row">
+            <strong>レビュー</strong>
+            <span class="when">Week 3</span>
+          </div>
+          <h3>UI/DB/実装を相互にチェック</h3>
+          <p>コード・画面・データの3方向で改善。良い点も言語化して“再現できる技術”にします。</p>
+        </div>
+
+        <div class="step reveal" style="transition-delay:.12s">
+          <div class="row">
+            <strong>発表</strong>
+            <span class="when">Week 4</span>
+          </div>
+          <h3>成果共有で次のテーマへ</h3>
+          <p>月1でライト発表。振り返り→次の課題設定までやると、成長が加速します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 参加 CTA -->
+  <section id="join">
+    <div class="container">
+      <div class="cta-block reveal">
+        <div class="cta-inner">
+          <div>
+            <h2>体験参加、歓迎。</h2>
+            <p>
+              初心者でもOK（基礎からやります）。経験者もOK（レビューと設計で伸ばします）。
+              まずは見学→簡単なミニ課題→制作に合流、の流れがスムーズです。
+            </p>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="cta" href="#" onclick="alert('ここに応募フォームURLを入れてください（例：Googleフォーム）'); return false;">体験参加フォーム</a>
+            <a class="btn" href="#top">トップへ戻る</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="brand-badge" aria-hidden="true" style="width:34px;height:34px;border-radius:14px;"></span>
+        <strong>Web Circle</strong>
+      </div>
+      <small>© <span id="y"></span> Web Circle. Built with HTML/CSS/JS.</small>
+    </div>
+  </footer>
+
+  <script>
+    /* =========================================================
+      直感的な説明（初心者向け）
+      - スクロールで“見えた要素”に .in を付ける → ふわっと出る
+      - data-parallax を付けた要素をスクロール量に応じてズラす → パララックス
+      - カルーセルは track を横にスクロールさせる（ボタンで位置を変える）
+    ========================================================= */
+
+    // 年号
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // 1) スクロール出現（IntersectionObserver：見えた瞬間を検知する仕組み）
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('in');
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // 2) パララックス（スクロールに合わせて translateY をちょい足し）
+    const parallaxEls = [...document.querySelectorAll('[data-parallax]')];
+    const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function onScroll(){
+      if (prefersReduce) return;
+
+      const y = window.scrollY || 0;
+      parallaxEls.forEach(el => {
+        const speed = parseFloat(el.dataset.parallax || "0.2");
+        // “スクロール量 × 速度” だけズラす（ズレすぎ防止で少し丸める）
+        const offset = Math.round(y * speed * 0.12);
+        el.style.transform = `translate3d(0, ${offset}px, 0)`;
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive:true });
+    onScroll();
+
+    // 3) カルーセル（横スクロール：次のスライド位置へ移動）
+    const track = document.querySelector('[data-track]');
+    const prevBtn = document.querySelector('[data-prev]');
+    const nextBtn = document.querySelector('[data-next]');
+
+    function slideBy(dir){
+      const slides = track.querySelectorAll('.slide');
+      if (!slides.length) return;
+
+      // “今の見えている位置”に近いスライドを探して、そこから±1へ
+      const left = track.scrollLeft;
+      let idx = 0, best = Infinity;
+      slides.forEach((s, i) => {
+        const d = Math.abs(s.offsetLeft - left);
+        if (d < best){ best = d; idx = i; }
+      });
+
+      const next = Math.max(0, Math.min(slides.length - 1, idx + dir));
+      track.scrollTo({ left: slides[next].offsetLeft, behavior:'smooth' });
+    }
+
+    prevBtn?.addEventListener('click', () => slideBy(-1));
+    nextBtn?.addEventListener('click', () => slideBy( 1));
+
+    // 自動送り（触っている間は止める）
+    let auto = null;
+    function startAuto(){
+      if (prefersReduce) return;
+      stopAuto();
+      auto = setInterval(() => slideBy(1), 5200);
+    }
+    function stopAuto(){
+      if (auto) clearInterval(auto);
+      auto = null;
+    }
+    track?.addEventListener('mouseenter', stopAuto);
+    track?.addEventListener('mouseleave', startAuto);
+    track?.addEventListener('touchstart', stopAuto, { passive:true });
+    track?.addEventListener('touchend', startAuto, { passive:true });
+
+    // “最後まで行ったら先頭へ戻る”をゆるく実現（端に到達したらワープ）
+    track?.addEventListener('scroll', () => {
+      if (!track) return;
+      const nearEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 6;
+      if (nearEnd){
+        // ちょい待ってから先頭に戻す（急すぎると不自然）
+        setTimeout(() => track.scrollTo({ left: 0, behavior:'smooth' }), 450);
+      }
+    });
+
+    startAuto();
+
+/* =========================================================
+  Split / Dicer Background FX（スクロール量で“割って開く”）
+  感覚：
+  - スクロールが進むほど、上の幕は上へ、下の幕は下へズレる
+  - 中央の刃は少し“追従”して、光が強くなる
+  - 0〜maxSplit の範囲で自然に止まる（開き過ぎ防止）
+========================================================= */
+
+(() => {
+  const fx = document.querySelector('.splitfx');
+  if (!fx) return;
+
+  const topHalf = fx.querySelector('.splitfx-half.top');
+  const bottomHalf = fx.querySelector('.splitfx-half.bottom');
+  const blade = fx.querySelector('.splitfx-blade');
+
+  const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduce) return;
+
+  // 開き具合（px）。大きくすると派手になる（例：220〜360）
+  const maxSplit = 300;
+
+  // どのスクロール範囲で開くか（px）。小さいほど早く開く（例：600〜1100）
+  const travel = 900;
+
+  // スクロール量を 0〜1 に正規化して、なめらかに変形（ease）
+  const ease = (t) => 1 - Math.pow(1 - t, 3); // cubic-out（最後ゆっくり）
+
+  let raf = 0;
+
+  function update(){
+    raf = 0;
+
+    const y = window.scrollY || 0;
+
+    // 0〜1 に収める（範囲外は止まる）
+    const raw = Math.min(1, Math.max(0, y / travel));
+    const t = ease(raw);
+
+    // 上下に割る（上はマイナス、下はプラス）
+    const split = Math.round(maxSplit * t);
+
+    topHalf.style.transform = `translate3d(0, ${-split}px, 0)`;
+    bottomHalf.style.transform = `translate3d(0, ${split}px, 0)`;
+
+    // 刃は少しだけ追従（割れ目が“切ってる”感じ）
+    const bladeShift = Math.round(split * 0.18);
+    blade.style.transform = `translate3d(0, ${bladeShift}px, 0)`;
+
+    // 光の強さ（開くほど存在感アップ）
+    blade.style.opacity = (0.25 + 0.75 * t).toFixed(3);
+
+    // ついでに“割れ目周辺の空気感”として、ほんのり影を足す
+    // （上面/下面に境界の陰影を付ける）
+    topHalf.style.filter = `drop-shadow(0 ${Math.round(8*t)}px ${Math.round(18*t)}px rgba(31,35,40,${(0.10*t).toFixed(3)}))`;
+    bottomHalf.style.filter = `drop-shadow(0 ${Math.round(-8*t)}px ${Math.round(18*t)}px rgba(31,35,40,${(0.10*t).toFixed(3)}))`;
+  }
+
+  function onScroll(){
+    if (raf) return;
+    raf = requestAnimationFrame(update);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onScroll);
+  update();
+})();
+
+  </script>
+</body>
+</html>
