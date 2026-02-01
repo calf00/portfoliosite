@@ -1,0 +1,704 @@
+
+    /* =========================
+      0) カラーパレット（ここだけ変えれば全体が変わる）
+    ========================= */
+    :root{
+      --bg: #EFEFF1;      /* サブ */
+      --main: #ECD4D4;    /* メイン */
+      --sub: #C6D2BE;     /* サブ */
+      --accent: #2F6F7E;  /* アクセント（おすすめ） */
+      --accent2: #6B4F8A; /* 追加の差し色（少し紫） */
+
+      --ink: #1f2328;     /* 文字（黒すぎない） */
+      --muted: rgba(31,35,40,.7);
+      --line: rgba(31,35,40,.12);
+
+      --glass: rgba(239,239,241,.55);
+      --shadow: 0 18px 45px rgba(31,35,40,.12);
+      --shadow2: 0 10px 28px rgba(31,35,40,.10);
+      --r-xl: 28px;
+      --r-lg: 22px;
+      --r-md: 16px;
+
+      --container: 1120px;
+      --ease: cubic-bezier(.2,.8,.2,1);
+    }
+
+    /* =========================
+      1) ベース
+    ========================= */
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif;
+      color:var(--ink);
+      background: var(--bg);
+      overflow-x:hidden;
+    }
+    a{ color:inherit; text-decoration:none; }
+    .container{
+      width:min(var(--container), calc(100% - 40px));
+      margin-inline:auto;
+    }
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+
+    /* 背景のアート（SVGを使った“布”っぽいレイヤ） */
+    .bg-art{
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      pointer-events:none;
+    }
+    .bg-art svg{ width:100%; height:100%; display:block; }
+
+    /* うっすらノイズ風（本物のノイズ画像を使わずCSSで“粒感”っぽく） */
+    .grain{
+      position:fixed;
+      inset:-50%;
+      z-index:-1;
+      pointer-events:none;
+      opacity:.12;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(31,35,40,.22) 0 1px, transparent 2px),
+        radial-gradient(circle at 80% 60%, rgba(31,35,40,.18) 0 1px, transparent 2px),
+        radial-gradient(circle at 40% 80%, rgba(31,35,40,.16) 0 1px, transparent 2px);
+      background-size: 220px 220px, 260px 260px, 300px 300px;
+      mix-blend-mode:multiply;
+      transform: rotate(8deg);
+      filter: blur(.1px);
+    }
+
+    /* =========================
+      2) ナビ
+    ========================= */
+    header{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(to bottom, rgba(239,239,241,.75), rgba(239,239,241,.45));
+      border-bottom:1px solid rgba(31,35,40,.08);
+    }
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 0;
+      gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:700;
+      letter-spacing:.3px;
+    }
+    .brand-badge{
+      width:38px; height:38px;
+      border-radius:14px;
+      background: radial-gradient(circle at 30% 30%, var(--main), var(--sub));
+      box-shadow: var(--shadow2);
+      position:relative;
+      overflow:hidden;
+    }
+    .brand-badge::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: conic-gradient(from 180deg, rgba(47,111,126,.0), rgba(47,111,126,.35), rgba(107,79,138,.20), rgba(47,111,126,.0));
+      animation: spin 6.5s linear infinite;
+    }
+    @keyframes spin { to{ transform:rotate(360deg);} }
+
+    .nav-links{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .nav-links a{
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:14px;
+      color: rgba(31,35,40,.82);
+      transition: background .2s var(--ease), transform .2s var(--ease);
+    }
+    .nav-links a:hover{
+      background: rgba(236,212,212,.55);
+      transform: translateY(-1px);
+    }
+
+    .cta{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background: linear-gradient(135deg, rgba(47,111,126,.95), rgba(107,79,138,.85));
+      color:white;
+      font-weight:700;
+      box-shadow: var(--shadow2);
+      border:1px solid rgba(255,255,255,.25);
+      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      white-space:nowrap;
+    }
+    .cta:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(31,35,40,.16);
+    }
+
+    /* =========================
+      3) ヒーロー（パララックス + バーン系）
+    ========================= */
+    .hero{
+      position:relative;
+      padding: clamp(54px, 6vw, 92px) 0 42px;
+      overflow:hidden;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:28px;
+      align-items:center;
+    }
+    @media (max-width: 920px){
+      .hero-grid{ grid-template-columns: 1fr; }
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(239,239,241,.65);
+      box-shadow: 0 10px 28px rgba(31,35,40,.06);
+      font-size:13px;
+      color: rgba(31,35,40,.72);
+    }
+    .kicker .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(47,111,126,.12);
+    }
+
+    h1{
+      margin:14px 0 10px;
+      font-size: clamp(34px, 4.1vw, 56px);
+      line-height:1.05;
+      letter-spacing:-.5px;
+    }
+    .lead{
+      margin: 12px 0 22px;
+      font-size: 16px;
+      line-height:1.9;
+      color: rgba(31,35,40,.78);
+      max-width: 58ch;
+    }
+
+    .hero-actions{
+      display:flex; gap:12px; flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:999px;
+      border:1px solid rgba(31,35,40,.14);
+      background: rgba(239,239,241,.7);
+      box-shadow: 0 10px 24px rgba(31,35,40,.08);
+      transition: transform .2s var(--ease), background .2s var(--ease);
+      font-weight:700;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      background: rgba(236,212,212,.55);
+    }
+    .btn.primary{
+      border-color: rgba(47,111,126,.25);
+      background: linear-gradient(135deg, rgba(236,212,212,.75), rgba(198,210,190,.65));
+    }
+
+    /* 右側のアートカード */
+    .hero-card{
+      position:relative;
+      border-radius: var(--r-xl);
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(239,239,241,.75), rgba(239,239,241,.42));
+      border:1px solid rgba(31,35,40,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-height: 360px;
+    }
+
+    /* バーンって光が走る（スイープ） */
+    .hero-card::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: linear-gradient(115deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,.35) 35%,
+        rgba(255,255,255,0) 70%);
+      transform: translateX(-40%) rotate(12deg);
+      animation: sweep 5.6s var(--ease) infinite;
+      opacity:.7;
+      pointer-events:none;
+    }
+    @keyframes sweep{
+      0%   { transform: translateX(-55%) rotate(12deg); opacity:.35; }
+      40%  { opacity:.85; }
+      55%  { transform: translateX(55%) rotate(12deg); opacity:.5; }
+      100% { transform: translateX(55%) rotate(12deg); opacity:.0; }
+    }
+
+    .mini-title{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:14px;
+      gap:12px;
+    }
+    .mini-title strong{ letter-spacing:.2px; }
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(236,212,212,.55);
+      border:1px solid rgba(31,35,40,.08);
+    }
+
+    /* アートレイヤ（パララックス対象） */
+    .blob{
+      position:absolute;
+      border-radius: 999px;
+      filter: blur(0px);
+      opacity:.9;
+      transform: translate3d(0,0,0);
+    }
+    .blob.b1{
+      width: 240px; height: 240px;
+      left: -60px; top: -40px;
+      background: radial-gradient(circle at 30% 30%, rgba(236,212,212,.95), rgba(236,212,212,.0) 70%),
+                  radial-gradient(circle at 70% 65%, rgba(47,111,126,.35), rgba(47,111,126,0) 65%);
+      filter: blur(1px);
+    }
+    .blob.b2{
+      width: 280px; height: 280px;
+      right: -90px; bottom: -90px;
+      background: radial-gradient(circle at 35% 30%, rgba(198,210,190,.95), rgba(198,210,190,.0) 70%),
+                  radial-gradient(circle at 65% 70%, rgba(107,79,138,.22), rgba(107,79,138,0) 62%);
+    }
+
+    .hero-stats{
+      position:absolute;
+      left:18px; right:18px; bottom:18px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    .stat{
+      border-radius: 18px;
+      padding: 12px 12px 10px;
+      background: rgba(239,239,241,.62);
+      border:1px solid rgba(31,35,40,.10);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 22px rgba(31,35,40,.07);
+    }
+    .stat .n{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .stat .t{
+      font-size:12px;
+      color: rgba(31,35,40,.68);
+      margin-top:4px;
+      line-height:1.3;
+    }
+
+    /* =========================
+      4) セクション共通
+    ========================= */
+    section{
+      padding: 56px 0;
+      position:relative;
+    }
+    .section-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom: 18px;
+    }
+    .section-head h2{
+      margin:0;
+      font-size: clamp(22px, 2.6vw, 32px);
+      letter-spacing:-.2px;
+    }
+    .section-head p{
+      margin:0;
+      color: var(--muted);
+      line-height:1.75;
+      max-width: 60ch;
+    }
+
+    .grid3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      .grid3{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border-radius: var(--r-lg);
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(239,239,241,.74), rgba(239,239,241,.46));
+      border: 1px solid rgba(31,35,40,.10);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+      position:relative;
+    }
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: inherit;
+      pointer-events:none;
+      background: radial-gradient(circle at 20% 10%, rgba(236,212,212,.35), transparent 45%),
+                  radial-gradient(circle at 90% 70%, rgba(198,210,190,.30), transparent 46%),
+                  radial-gradient(circle at 55% 45%, rgba(47,111,126,.18), transparent 44%);
+      mix-blend-mode: multiply;
+      opacity:.9;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    .icon{
+      width:46px; height:46px;
+      border-radius:16px;
+      display:grid; place-items:center;
+      background: rgba(236,212,212,.55);
+      border:1px solid rgba(31,35,40,.10);
+      margin-bottom: 12px;
+      box-shadow: 0 10px 22px rgba(31,35,40,.08);
+    }
+    .card h3{ margin: 4px 0 6px; font-size: 18px; }
+    .card p{ margin:0; color: rgba(31,35,40,.72); line-height:1.8; }
+
+    .tagrow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top: 12px;
+    }
+    .tag{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(31,35,40,.10);
+      background: rgba(239,239,241,.62);
+      color: rgba(31,35,40,.72);
+    }
+
+    /* =========================
+      5) カルーセル（横スライド）
+    ========================= */
+    .carousel{
+      position:relative;
+      border-radius: var(--r-xl);
+      border:1px solid rgba(31,35,40,.10);
+      background: linear-gradient(180deg, rgba(239,239,241,.75), rgba(239,239,241,.42));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .track{
+      display:flex;
+      gap:14px;
+      padding: 16px;
+      overflow:auto;
+      scroll-snap-type:x mandatory;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .track::-webkit-scrollbar{ height:10px; }
+    .track::-webkit-scrollbar-thumb{
+      background: rgba(31,35,40,.12);
+      border-radius:999px;
+    }
+    .slide{
+      flex: 0 0 min(520px, 86%);
+      scroll-snap-align: start;
+      border-radius: 22px;
+      padding: 18px;
+      background: rgba(239,239,241,.62);
+      border:1px solid rgba(31,35,40,.10);
+      position:relative;
+      overflow:hidden;
+      min-height: 220px;
+    }
+    .slide .top{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom: 10px;
+    }
+    .slide .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(198,210,190,.55);
+      border:1px solid rgba(31,35,40,.10);
+    }
+    .slide h3{ margin: 0 0 8px; font-size: 20px; letter-spacing:-.2px; }
+    .slide p{ margin:0; color: rgba(31,35,40,.74); line-height:1.85; }
+
+    /* スライド背景のSVGっぽい模様（疑似） */
+    .slide::after{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(236,212,212,.55), transparent 55%),
+        radial-gradient(circle at 70% 60%, rgba(47,111,126,.22), transparent 55%),
+        radial-gradient(circle at 55% 15%, rgba(107,79,138,.18), transparent 45%);
+      transform: rotate(-8deg);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .slide > *{ position:relative; z-index:1; }
+
+    .car-controls{
+      position:absolute;
+      top: 14px;
+      right: 14px;
+      display:flex;
+      gap:10px;
+      z-index:2;
+    }
+    .iconbtn{
+      width:40px; height:40px;
+      border-radius:999px;
+      border:1px solid rgba(31,35,40,.12);
+      background: rgba(239,239,241,.7);
+      box-shadow: 0 10px 22px rgba(31,35,40,.08);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: transform .2s var(--ease), background .2s var(--ease);
+    }
+    .iconbtn:hover{
+      transform: translateY(-2px);
+      background: rgba(236,212,212,.55);
+    }
+
+    /* =========================
+      6) タイムライン
+    ========================= */
+    .timeline{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){ .timeline{ grid-template-columns: 1fr; } }
+    .step{
+      padding: 16px 16px 14px;
+      border-radius: 22px;
+      background: rgba(239,239,241,.62);
+      border:1px solid rgba(31,35,40,.10);
+      position:relative;
+      overflow:hidden;
+    }
+    .step .row{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom: 8px;
+    }
+    .step .when{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(236,212,212,.55);
+      border:1px solid rgba(31,35,40,.10);
+    }
+    .step h3{ margin:0 0 6px; font-size: 16px; }
+    .step p{ margin:0; color: rgba(31,35,40,.74); line-height:1.8; }
+
+    /* =========================
+      7) CTA ブロック
+    ========================= */
+    .cta-block{
+      border-radius: var(--r-xl);
+      padding: 22px;
+      border:1px solid rgba(31,35,40,.10);
+      background: linear-gradient(135deg, rgba(236,212,212,.72), rgba(198,210,190,.62));
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .cta-block::before{
+      content:"";
+      position:absolute;
+      inset:-50%;
+      background: conic-gradient(from 90deg,
+        rgba(47,111,126,.0),
+        rgba(47,111,126,.32),
+        rgba(107,79,138,.22),
+        rgba(47,111,126,.0));
+      animation: spin 14s linear infinite;
+      opacity:.55;
+      pointer-events:none;
+    }
+    .cta-inner{
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    .cta-inner h2{ margin:0; }
+    .cta-inner p{ margin:6px 0 0; color: rgba(31,35,40,.74); line-height:1.8; max-width: 60ch; }
+
+    footer{
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(31,35,40,.10);
+      color: rgba(31,35,40,.72);
+      background: rgba(239,239,241,.55);
+      backdrop-filter: blur(12px);
+    }
+
+    /* =========================
+      8) スクロール出現アニメ（“ふわっ”）
+         → JSで .reveal に .in を付ける
+    ========================= */
+    .reveal{
+      opacity:0;
+      transform: translateY(18px) scale(.985);
+      transition: opacity .7s var(--ease), transform .7s var(--ease);
+    }
+    .reveal.in{
+      opacity:1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* パララックス対象（JSで translateY を足す） */
+    .parallax{ will-change: transform; }
+
+    /* 動きが苦手な人（OS設定）に配慮 */
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .reveal{ transition:none; }
+      .hero-card::before{ animation:none; }
+      .brand-badge::after{ animation:none; }
+      .cta-block::before{ animation:none; }
+      .parallax{ transform:none !important; }
+    }
+    /* =========================
+  Split / Dicer Background FX
+  - 上面/下面の2レイヤで背景を「割って開く」
+  - 中央に刃（スピンドル）っぽい線と光
+========================= */
+.splitfx{
+  position:fixed;
+  inset:0;
+  z-index:-1;            /* bg-art の上、コンテンツの下に置く想定 */
+  pointer-events:none;
+  overflow:hidden;
+}
+
+/* 上半分 / 下半分の“幕” */
+.splitfx-half{
+  position:absolute;
+  left:0; right:0;
+  height:50%;
+  overflow:hidden;
+  will-change: transform;
+  transform: translate3d(0,0,0);
+}
+
+.splitfx-half.top{ top:0; }
+.splitfx-half.bottom{ bottom:0; }
+
+/* 幕の表面（この中に“同じ背景”を描く） */
+.splitfx-surface{
+  position:absolute;
+  inset:-8% -8%;  /* 少しはみ出して動かしても隙間が出ないように */
+  background:
+    /* 既存の配色を使った“水彩っぽい”滲み */
+    radial-gradient(circle at 20% 25%, rgba(236,212,212,.70), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(198,210,190,.65), transparent 60%),
+    radial-gradient(circle at 55% 40%, rgba(47,111,126,.18), transparent 55%),
+    linear-gradient(135deg, rgba(236,212,212,.22), rgba(239,239,241,.15), rgba(198,210,190,.20));
+  filter: saturate(1.05);
+  opacity:.9;
+}
+
+/* 上面/下面で “同じ背景が繋がって見える” ように位置をずらす */
+.splitfx-half.top .splitfx-surface{
+  transform: translate3d(0,0,0);
+}
+.splitfx-half.bottom .splitfx-surface{
+  transform: translate3d(0,-50%,0); /* 下半分は背景を上に半分ずらして連続に見せる */
+}
+
+/* 割れ目の“刃（spindle）” */
+.splitfx-blade{
+  position:absolute;
+  left:0; right:0;
+  top:50%;
+  height:0;
+  transform: translateY(-50%);
+  will-change: transform, opacity;
+}
+
+.blade-core{
+  position:absolute;
+  left:50%;
+  width: min(860px, 92vw);
+  height: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0),
+    rgba(255,255,255,.85),
+    rgba(255,255,255,0)
+  );
+  opacity:.9;
+  mix-blend-mode: overlay;
+}
+
+.blade-glow{
+  position:absolute;
+  left:50%;
+  width: min(980px, 96vw);
+  height: 34px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 50% 50%,
+    rgba(47,111,126,.22),
+    rgba(236,212,212,.22),
+    rgba(107,79,138,.10),
+    rgba(0,0,0,0) 62%
+  );
+  filter: blur(6px);
+  opacity:.75;
+  mix-blend-mode: multiply;
+}
+
+/* 中央に薄い“切断線”を常駐（上と下の境目が分かる） */
+.splitfx::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  top:50%;
+  height:1px;
+  transform: translateY(-50%);
+  background: rgba(31,35,40,.10);
+  opacity:.35;
+}
+
+/* 動きが苦手な人向け */
+@media (prefers-reduced-motion: reduce){
+  .splitfx-half{ transform:none !important; }
+  .splitfx-blade{ opacity:.25 !important; }
+}
